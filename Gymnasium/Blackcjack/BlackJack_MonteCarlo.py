@@ -1,78 +1,7 @@
 from collections import defaultdict
 import gymnasium as gym
 import numpy as np
-
-class BlackjackMCAgent:
-    def __init__(
-            self, 
-            env: gym.Env, 
-            initial_epsilon: float,
-            epsilon_decay: float,
-            final_epsilon: float,
-    ):
-        """Initialize a Monte Carlo agent.
-
-        Args:
-            env: The training environment
-            initial_epsilon: Starting exploration rate (usually 1.0)
-            epsilon_decay: How much to reduce epsilon each episode
-            final_epsilon: Minimum exploration rate (usually 0.1)
-        """
-
-        self.env = env
-
-        # Q-table: maps (state, action) to expected reward
-        # defaultdict automatically creates entries with zeros for new states
-        self.q_values = defaultdict(lambda: np.zeros(env.action_space.n))
-        self.returns = defaultdict(list)  # Store returns for each (state, action)
-
-        # Exploration parameters
-        self.epsilon = initial_epsilon
-        self.epsilon_decay = epsilon_decay
-        self.final_epsilon = final_epsilon
-
-        # Track episode data
-        self.episode_data = []  # [(state, action), ...]
-        self.episode_rewards = []  # Track rewards for plotting
-
-    def get_action(self, obs: tuple[int, int, bool]) -> int:
-        """Choose an action using epsilon-greedy strategy.
-
-        Returns:
-            action: 0 (stand) or 1 (hit)
-        """
-        # With probability epsilon: explore (random action)
-        if np.random.random() < self.epsilon:
-            return self.env.action_space.sample()  # Random action
-
-        # With probability (1-epsilon): exploit (best known action)
-        else:
-            return int(np.argmax(self.q_values[obs]))
-        
-    def store_transition(self, obs, action):
-        """Store state-action pairs during episode"""
-        self.episode_data.append((obs, action))
-    
-    def update_episode(self, episode_reward):
-        """Update Q-values after complete episode using actual return"""
-        # In Blackjack, all actions get the same final reward
-        # (win/lose/draw applies to the entire hand)
-        for obs, action in self.episode_data:
-            # Store the actual return
-            self.returns[(obs, action)].append(episode_reward)
-            # Update Q-value to average of all returns seen for this (state, action)
-            self.q_values[obs][action] = np.mean(self.returns[(obs, action)])
-        
-        # Track episode reward for plotting
-        self.episode_rewards.append(episode_reward)
-        
-        # CRITICAL: Clear episode data for next episode
-        self.episode_data = []
-
-    def decay_epsilon(self):
-        """Reduce exploration rate after each episode."""
-        self.epsilon = max(self.final_epsilon, self.epsilon - self.epsilon_decay)
-
+from MonteCarlo_Agent import MonteCarloAgent
 
 # Training hyperparameters
 n_episodes = 100000        # Number of hands to practice
@@ -84,7 +13,7 @@ final_epsilon = 0.1         # Always keep some exploration
 env = gym.make("Blackjack-v1", sab=False)
 env = gym.wrappers.RecordEpisodeStatistics(env, buffer_length=n_episodes)
 
-agent = BlackjackMCAgent(
+agent = MonteCarloAgent(
     env=env,
     initial_epsilon=start_epsilon,
     epsilon_decay=epsilon_decay,

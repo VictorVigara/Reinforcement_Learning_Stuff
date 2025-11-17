@@ -1,7 +1,12 @@
+import sys
+import os
+
 from collections import defaultdict
 import gymnasium as gym
 import numpy as np
-from MonteCarlo_Agent import MonteCarloAgent
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from MonteCarlo.MonteCarlo_Agent import MonteCarloAgent
 
 # Training hyperparameters
 n_episodes = 100000        # Number of hands to practice
